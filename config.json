@@ -1,0 +1,27 @@
+{
+  "name": "SolarEdge-mqtt",
+  "version": "0.1",
+  "slug": "solaredge_mqtt",
+  "description": "SolarEdge mqtt addon with more info than usual API's. Make sure to have a cookies.txt file loaded into the cookie_path (default=/share/solaredge_mqtt). Cookies.txt should be exported from your browser with an extension while being logged into https://monitoring.solaredge.com",
+  "url": "https://github.com/Drawer/SolarEdge-mqtt",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "startup": "before",
+  "boot": "auto",
+  "options": {
+    "mqtt_server": "localhost",
+    "mqtt_user": "mqtt",
+    "mqtt_password": "mqtt",
+    "mqtt_port": 1883,
+    "cookie_path": "/share/solaredge_mqtt"
+  },
+  "map": [
+    "share:rw"
+    ],
+    "schema": {
+        "mqtt_server": "str",
+        "mqtt_user": "str",
+        "mqtt_password": "str",
+        "mqtt_port": "int",
+        "cookie_path": "str"
+      }
+}
