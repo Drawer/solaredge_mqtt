@@ -1,4 +1,5 @@
 {
     "name": "SolarEdge-mqtt",
-    "url": "https://github.com/Drawer/SolarEdge-mqtt"
+    "url": "https://github.com/Drawer/SolarEdge-mqtt",
+    "maintainer": "Drawer"
   }
