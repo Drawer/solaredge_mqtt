@@ -49,10 +49,12 @@ while 1:
     for data in datajson['reportersInfo']:
         if datajson['reportersInfo'][data]['lastMeasurement'] != None:
             client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+"/unscaledEnergy",str(datajson['reportersData'][data]['unscaledEnergy']))
+            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/lastMeasurement',int(datajson['reportersInfo'][data]['lastMeasurement']/1000))
             for measurements in datajson['reportersInfo'][data]:
                 if measurements in ('localizedMeasurements', 'localizedPhase1Measurements', 'localizedPhase2Measurements', 'localizedPhase3Measurements'):
                     for value in datajson['reportersInfo'][data][measurements]:
                         client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]))
+
     time.sleep(60)
 
 
