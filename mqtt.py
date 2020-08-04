@@ -44,17 +44,19 @@ client.username_pw_set(mqtt_user, mqtt_password)
 client.connect(mqtt_server, mqtt_port, 60)
 
 while 1:
-    r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
-    datajson = json.loads(r.content)
-    for data in datajson['reportersInfo']:
-        if datajson['reportersInfo'][data]['lastMeasurement'] != None:
-            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+"/unscaledEnergy",str(datajson['reportersData'][data]['unscaledEnergy']))
-            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/lastMeasurement',int(datajson['reportersInfo'][data]['lastMeasurement']/1000))
-            for measurements in datajson['reportersInfo'][data]:
-                if measurements in ('localizedMeasurements', 'localizedPhase1Measurements', 'localizedPhase2Measurements', 'localizedPhase3Measurements'):
-                    for value in datajson['reportersInfo'][data][measurements]:
-                        client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]))
-
+    try:
+        r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
+        datajson = json.loads(r.content)
+        for data in datajson['reportersInfo']:
+            if datajson['reportersInfo'][data]['lastMeasurement'] != None:
+                client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+"/unscaledEnergy",str(datajson['reportersData'][data]['unscaledEnergy']))
+                client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/lastMeasurement',int(datajson['reportersInfo'][data]['lastMeasurement']/1000))
+                for measurements in datajson['reportersInfo'][data]:
+                    if measurements in ('localizedMeasurements', 'localizedPhase1Measurements', 'localizedPhase2Measurements', 'localizedPhase3Measurements'):
+                        for value in datajson['reportersInfo'][data][measurements]:
+                            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]))
+    except:
+        print("[Error] Unknown error")
     time.sleep(60)
 
 
