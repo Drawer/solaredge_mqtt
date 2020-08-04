@@ -54,7 +54,7 @@ while 1:
                 for measurements in datajson['reportersInfo'][data]:
                     if measurements in ('localizedMeasurements', 'localizedPhase1Measurements', 'localizedPhase2Measurements', 'localizedPhase3Measurements'):
                         for value in datajson['reportersInfo'][data][measurements]:
-                            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]))
+                            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]).replace('.',''))
     except:
         print("[Error] Unknown error")
     time.sleep(60)
