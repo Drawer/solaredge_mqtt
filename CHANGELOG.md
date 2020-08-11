@@ -1,4 +1,7 @@
 # Changelog
+## 0.6
+- Added the current
+
 ## 0.5
 - Added better error handling
 - Added functions in the code

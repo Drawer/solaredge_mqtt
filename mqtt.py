@@ -37,14 +37,19 @@ def publish_config(name,dimension,unit_of_measurement, datajson, data):
     json_data = json.dumps(values)
     client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
 
-def publish_values(name,dimension):
+def publish_values(name):
+    dimensions = ('power', 'current')
     translations = {}
     translations['power'] = 'Vermogen [W]'
-    dimension_local = translations[dimension]
+    translations['current'] = 'Stroom [A]'
     values = {}
-    values[dimension] = datajson['reportersInfo'][data]['localizedMeasurements'][dimension_local].replace(',','.')
-    if dimension == 'power':
-        values[dimension] = float(values[dimension])
+    for dimension in dimensions:
+        dimension_local = translations[dimension]
+        values[dimension] = datajson['reportersInfo'][data]['localizedMeasurements'][dimension_local].replace(',','.')
+        if dimension == 'power':
+            values[dimension] = float(values[dimension])
+        if dimension == 'current':
+            values[dimension] = float(values[dimension])
     json_data = json.dumps(values)
     client.publish('homeassistant/sensor/'+name,json_data)
 
@@ -83,7 +88,8 @@ while 1:
         r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
         datajson = json.loads(r.content)
         for data in datajson['reportersInfo']:
-            if datajson['reportersInfo'][data]['lastMeasurement'] != None and 'Vermogen [W]' in datajson['reportersInfo'][data]['localizedMeasurements']:
+            if datajson['reportersInfo'][data]['lastMeasurement'] != None \
+                and 'Vermogen [W]' in datajson['reportersInfo'][data]['localizedMeasurements']:
 
                 name = str(datajson['reportersInfo'][data]['name'])
                 config_base_topic = 'homeassistant/sensor/'+name
@@ -91,8 +97,9 @@ while 1:
                 
                 name = clean_name(name)
                 publish_config(name, 'power', 'W', datajson, data)
+                publish_config(name, 'current', 'A', datajson, data)
                 
-                publish_values(name,'power')
+                publish_values(name)
 
         time.sleep(1)
         client.disconnect()
