@@ -4,6 +4,7 @@ import time
 import json
 import paho.mqtt.client as mqtt
 import argparse
+import sys
 
 def parseCookieFile(cookiefile):
     cookies = {}
@@ -14,6 +15,38 @@ def parseCookieFile(cookiefile):
                 cookies[lineFields[5]] = lineFields[6]
     return cookies
 
+def clean_name(name):
+    name = name.replace(' ','_').replace('.','-')
+    return name
+
+def publish_config(name,dimension,unit_of_measurement, datajson, data):
+    values = {}
+    values['name'] = name+'_'+dimension
+    values['unique_id'] = name+'_'+dimension
+    values['device_class'] = dimension
+    values['state_topic'] = 'homeassistant/sensor/'+name
+    values['json_attributes_topic'] = 'homeassistant/sensor/'+name
+    values['value_template']= '{{ value_json.'+dimension+' }}'
+    if (unit_of_measurement != None):
+        values['unit_of_measurement'] = unit_of_measurement
+    values['device'] = {}
+    values['device']['name'] = name
+    values['device']['manufacturer'] = datajson['reportersInfo'][data]['manufacturer']
+    values['device']['model'] = datajson['reportersInfo'][data]['model']
+    values['device']['identifiers'] = ('solaredge_'+ name,)
+    json_data = json.dumps(values)
+    client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
+
+def publish_values(name,dimension):
+    translations = {}
+    translations['power'] = 'Vermogen [W]'
+    dimension_local = translations[dimension]
+    values = {}
+    values[dimension] = datajson['reportersInfo'][data]['localizedMeasurements'][dimension_local].replace(',','.')
+    if dimension == 'power':
+        values[dimension] = float(values[dimension])
+    json_data = json.dumps(values)
+    client.publish('homeassistant/sensor/'+name,json_data)
 
 ## Parse arguments into variables
 parser = argparse.ArgumentParser()
@@ -38,25 +71,34 @@ for cookiename in cookies:
     if cookiename == 'SolarEdge_Field_ID':
         field_id = cookies[cookiename]
 
-## Connect to MQTT server
-client = mqtt.Client()
-client.username_pw_set(mqtt_user, mqtt_password)
-client.connect(mqtt_server, mqtt_port, 60)
+
 
 while 1:
     try:
+        ## Connect to MQTT server
+        client = mqtt.Client()
+        client.username_pw_set(mqtt_user, mqtt_password)
+        client.connect(mqtt_server, mqtt_port, 60)
+
         r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
         datajson = json.loads(r.content)
         for data in datajson['reportersInfo']:
-            if datajson['reportersInfo'][data]['lastMeasurement'] != None:
-                client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+"/unscaledEnergy",str(datajson['reportersData'][data]['unscaledEnergy']))
-                client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/lastMeasurement',int(datajson['reportersInfo'][data]['lastMeasurement']/1000))
-                for measurements in datajson['reportersInfo'][data]:
-                    if measurements in ('localizedMeasurements', 'localizedPhase1Measurements', 'localizedPhase2Measurements', 'localizedPhase3Measurements'):
-                        for value in datajson['reportersInfo'][data][measurements]:
-                            client.publish("solaredge/"+str(datajson['reportersInfo'][data]['name'])+'/'+measurements+'/'+value,str(datajson['reportersInfo'][data][measurements][value]).replace('.',''))
+            if datajson['reportersInfo'][data]['lastMeasurement'] != None and 'Vermogen [W]' in datajson['reportersInfo'][data]['localizedMeasurements']:
+
+                name = str(datajson['reportersInfo'][data]['name'])
+                config_base_topic = 'homeassistant/sensor/'+name
+                config_base_topic = config_base_topic.replace(' ','_').replace('.','-')
+                
+                name = clean_name(name)
+                publish_config(name, 'power', 'W', datajson, data)
+                
+                publish_values(name,'power')
+
+        time.sleep(1)
+        client.disconnect()
     except:
-        print("[Error] Unknown error")
+        e = sys.exc_info()[0]
+        print("[Error] %s" % e)
     time.sleep(60)
 
 

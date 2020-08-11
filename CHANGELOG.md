@@ -1,4 +1,10 @@
 # Changelog
+## 0.5
+- Added better error handling
+- Added functions in the code
+- Added device info to show in the device tab
+- Removed lastMeasurement
+
 ## 0.4
 - Fixed thousands seperator
 
