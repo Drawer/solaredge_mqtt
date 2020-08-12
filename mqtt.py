@@ -23,7 +23,8 @@ def publish_config(name,dimension,unit_of_measurement, datajson, data):
     values = {}
     values['name'] = name+'_'+dimension
     values['unique_id'] = name+'_'+dimension
-    values['device_class'] = dimension
+    if dimension == 'power':
+        values['device_class'] = dimension
     values['state_topic'] = 'homeassistant/sensor/'+name
     values['json_attributes_topic'] = 'homeassistant/sensor/'+name
     values['value_template']= '{{ value_json.'+dimension+' }}'
@@ -38,10 +39,12 @@ def publish_config(name,dimension,unit_of_measurement, datajson, data):
     client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
 
 def publish_values(name):
-    dimensions = ('power', 'current')
+    dimensions = ('power', 'current', 'voltage', 'optimizer_voltage')
     translations = {}
     translations['power'] = 'Vermogen [W]'
     translations['current'] = 'Stroom [A]'
+    translations['voltage'] = 'Spanning [V]'
+    translations['optimizer_voltage'] = 'Optimizer spanning [V]'
     values = {}
     for dimension in dimensions:
         dimension_local = translations[dimension]
@@ -49,6 +52,10 @@ def publish_values(name):
         if dimension == 'power':
             values[dimension] = float(values[dimension])
         if dimension == 'current':
+            values[dimension] = float(values[dimension])
+        if dimension == 'voltage':
+            values[dimension] = float(values[dimension])
+        if dimension == 'optimizer_voltage':
             values[dimension] = float(values[dimension])
     json_data = json.dumps(values)
     client.publish('homeassistant/sensor/'+name,json_data)
@@ -98,7 +105,8 @@ while 1:
                 name = clean_name(name)
                 publish_config(name, 'power', 'W', datajson, data)
                 publish_config(name, 'current', 'A', datajson, data)
-                
+                publish_config(name, 'voltage', 'V', datajson, data)
+                publish_config(name, 'optimizer_voltage', 'V', datajson, data)
                 publish_values(name)
 
         time.sleep(1)

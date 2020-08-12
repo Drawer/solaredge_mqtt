@@ -1,4 +1,6 @@
 # Changelog
+## 0.7
+- Added current, voltage and optimizer_voltage per panel
 ## 0.6
 - Added the current
 
