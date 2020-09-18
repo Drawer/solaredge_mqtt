@@ -66,6 +66,7 @@ parser.add_argument("cookie_path")
 parser.add_argument("mqtt_server")
 parser.add_argument("mqtt_user")
 parser.add_argument("mqtt_password")
+parser.add_argument("mqtt_anonymous")
 parser.add_argument("mqtt_port")
 
 args = parser.parse_args()
@@ -73,6 +74,7 @@ cookie_path = args.cookie_path
 mqtt_server = args.mqtt_server
 mqtt_user = args.mqtt_user
 mqtt_password = args.mqtt_password
+mqtt_anomymous = args.mqtt_anonymous
 mqtt_port  =int(args.mqtt_port)
 
 ## Parse cookiefile
@@ -89,7 +91,8 @@ while 1:
     try:
         ## Connect to MQTT server
         client = mqtt.Client()
-        client.username_pw_set(mqtt_user, mqtt_password)
+        if mqtt_anomymous != True:
+            client.username_pw_set(mqtt_user, mqtt_password)
         client.connect(mqtt_server, mqtt_port, 60)
 
         r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
