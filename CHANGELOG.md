@@ -1,4 +1,6 @@
 # Changelog
+## 0.9
+- Maintenance release for new version of supervisor
 ## 0.8
 - Added anonymous mqtt possibility
 
