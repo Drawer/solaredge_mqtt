@@ -1,8 +1,4 @@
 #!/usr/bin/with-contenv bashio
-<<<<<<< HEAD
-=======
-
->>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
 CONFIG_PATH=/data/options.json
 cookie_path=$(jq --raw-output ".cookie_path" $CONFIG_PATH)
 mqtt_server=$(jq --raw-output ".mqtt_server" $CONFIG_PATH)

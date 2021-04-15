@@ -1,12 +1,5 @@
-<<<<<<< HEAD
 {
     "name": "SolarEdge-mqtt",
     "url": "https://github.com/Drawer/SolarEdge-mqtt",
     "maintainer": "Drawer"
-=======
-{
-    "name": "SolarEdge-mqtt",
-    "url": "https://github.com/Drawer/SolarEdge-mqtt",
-    "maintainer": "Drawer"
->>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
   }
