@@ -19,7 +19,11 @@ def clean_name(name):
     name = name.replace(' ','_').replace('.','-')
     return name
 
+<<<<<<< HEAD
 def publish_config_panel(name,dimension,unit_of_measurement, datajson):
+=======
+def publish_config(name,dimension,unit_of_measurement, datajson, data):
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
     values = {}
     values['name'] = name+'_'+dimension
     values['unique_id'] = name+'_'+dimension
@@ -32,13 +36,22 @@ def publish_config_panel(name,dimension,unit_of_measurement, datajson):
         values['unit_of_measurement'] = unit_of_measurement
     values['device'] = {}
     values['device']['name'] = name
+<<<<<<< HEAD
     values['device']['manufacturer'] = datajson['manufacturer']
     values['device']['model'] = datajson['model']
+=======
+    values['device']['manufacturer'] = datajson['reportersInfo'][data]['manufacturer']
+    values['device']['model'] = datajson['reportersInfo'][data]['model']
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
     values['device']['identifiers'] = ('solaredge_'+ name,)
     json_data = json.dumps(values)
     client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
 
+<<<<<<< HEAD
 def publish_values_panel(name):
+=======
+def publish_values(name):
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
     dimensions = ('power', 'current', 'voltage', 'optimizer_voltage')
     translations = {}
     translations['power'] = 'Vermogen [W]'
@@ -48,7 +61,11 @@ def publish_values_panel(name):
     values = {}
     for dimension in dimensions:
         dimension_local = translations[dimension]
+<<<<<<< HEAD
         values[dimension] = systemData['measurements'][dimension_local].replace(',','.')
+=======
+        values[dimension] = datajson['reportersInfo'][data]['localizedMeasurements'][dimension_local].replace(',','.')
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
         if dimension == 'power':
             values[dimension] = float(values[dimension])
         if dimension == 'current':
@@ -85,6 +102,11 @@ for cookiename in cookies:
     if cookiename == 'SolarEdge_Field_ID':
         field_id = cookies[cookiename]
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
 while 1:
     try:
         ## Connect to MQTT server
@@ -95,6 +117,7 @@ while 1:
 
         r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
         datajson = json.loads(r.content)
+<<<<<<< HEAD
         for data in datajson['logicalTree']['children']:
             # reportedId = data['data']['id']
             # producttype = data['data']['type']
@@ -129,6 +152,22 @@ while 1:
                             publish_config_panel(name, 'voltage', 'V', systemData)
                             publish_config_panel(name, 'optimizer_voltage', 'V', systemData)
                             publish_values_panel(name)
+=======
+        for data in datajson['reportersInfo']:
+            if datajson['reportersInfo'][data]['lastMeasurement'] != None \
+                and 'Vermogen [W]' in datajson['reportersInfo'][data]['localizedMeasurements']:
+
+                name = str(datajson['reportersInfo'][data]['name'])
+                config_base_topic = 'homeassistant/sensor/'+name
+                config_base_topic = config_base_topic.replace(' ','_').replace('.','-')
+                
+                name = clean_name(name)
+                publish_config(name, 'power', 'W', datajson, data)
+                publish_config(name, 'current', 'A', datajson, data)
+                publish_config(name, 'voltage', 'V', datajson, data)
+                publish_config(name, 'optimizer_voltage', 'V', datajson, data)
+                publish_values(name)
+>>>>>>> 0eea89bfdfb0be16dc7955675f5893da363331d8
 
         time.sleep(1)
         client.disconnect()
