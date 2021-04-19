@@ -1,4 +1,10 @@
 # Changelog
+## 0.11.2
+- Fix for floats
+
+## 0.11.1
+- Fix for 3 phase inverters
+
 ## 0.11
 - Added inverter measurements
 

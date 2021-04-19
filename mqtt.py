@@ -77,17 +77,17 @@ def publish_values_inverter(name):
     if len(systemData['phase1Measurements'])>0:
         for dimension in dimensions_l1:
             dimension_local = translations_l1[dimension]
-            values[dimension] = systemData['phase1Measurements'][dimension_local].replace(',','.')
+            values[dimension] = systemData['phase1Measurements'][dimension_local].replace('.', '').replace(',','.')
             values[dimension] = float(values[dimension])
     if len(systemData['phase2Measurements'])>0:
         for dimension in dimensions_l2:
             dimension_local = translations_l2[dimension]
-            values[dimension] = systemData['phase2Measurements'][dimension_local].replace(',','.')
+            values[dimension] = systemData['phase2Measurements'][dimension_local].replace('.', '').replace(',','.')
             values[dimension] = float(values[dimension])
     if len(systemData['phase3Measurements'])>0:
         for dimension in dimensions_l3:
             dimension_local = translations_l3[dimension]
-            values[dimension] = systemData['phase3Measurements'][dimension_local].replace(',','.')
+            values[dimension] = systemData['phase3Measurements'][dimension_local].replace('.', '').replace(',','.')
             values[dimension] = float(values[dimension])
     json_data = json.dumps(values)
     client.publish('homeassistant/sensor/'+name,json_data)
