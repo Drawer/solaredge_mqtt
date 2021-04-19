@@ -1,4 +1,7 @@
 # Changelog
+## 0.11
+- Added inverter measurements
+
 ## 0.10
 - Changed architecture since SolarEdge has changed their API
 

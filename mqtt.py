@@ -19,6 +19,25 @@ def clean_name(name):
     name = name.replace(' ','_').replace('.','-')
     return name
 
+def publish_config_inverter(name,dimension,unit_of_measurement, datajson):
+    values = {}
+    values['name'] = name+'_'+dimension
+    values['unique_id'] = name+'_'+dimension
+    if dimension == 'power':
+        values['device_class'] = dimension
+    values['state_topic'] = 'homeassistant/sensor/'+name
+    values['json_attributes_topic'] = 'homeassistant/sensor/'+name
+    values['value_template']= '{{ value_json.'+dimension+' }}'
+    if (unit_of_measurement != None):
+        values['unit_of_measurement'] = unit_of_measurement
+    values['device'] = {}
+    values['device']['name'] = name
+    values['device']['manufacturer'] = datajson['manufacturer']
+    values['device']['model'] = datajson['model']
+    values['device']['identifiers'] = ('solaredge_'+ name,)
+    json_data = json.dumps(values)
+    client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
+
 def publish_config_panel(name,dimension,unit_of_measurement, datajson):
     values = {}
     values['name'] = name+'_'+dimension
@@ -37,6 +56,41 @@ def publish_config_panel(name,dimension,unit_of_measurement, datajson):
     values['device']['identifiers'] = ('solaredge_'+ name,)
     json_data = json.dumps(values)
     client.publish(config_base_topic+'/'+dimension+'/config',json_data,retain=True)
+
+def publish_values_inverter(name):
+    dimensions_l1 = ('l1_active_power', 'l1_current', 'l1_voltage')
+    dimensions_l2 = ('l2_active_power', 'l2_current', 'l2_voltage')
+    dimensions_l3 = ('l3_active_power', 'l3_current', 'l3_voltage')
+    translations_l1 = {}
+    translations_l1['l1_active_power'] = 'Actief vermogen [W]'
+    translations_l1['l1_current'] = 'I AC [A]'
+    translations_l1['l1_voltage'] = 'V AC [V]'
+    translations_l2 = {}
+    translations_l2['l2_active_power'] = 'Actief vermogen [W]'
+    translations_l2['l2_current'] = 'I AC [A]'
+    translations_l2['l2_voltage'] = 'V AC [V]'
+    translations_l3 = {}
+    translations_l3['l3_active_power'] = 'Actief vermogen [W]'
+    translations_l3['l3_current'] = 'I AC [A]'
+    translations_l3['l3_voltage'] = 'V AC [V]'
+    values = {}
+    if len(systemData['phase1Measurements'])>0:
+        for dimension in dimensions_l1:
+            dimension_local = translations_l1[dimension]
+            values[dimension] = systemData['phase1Measurements'][dimension_local].replace(',','.')
+            values[dimension] = float(values[dimension])
+    if len(systemData['phase2Measurements'])>0:
+        for dimension in dimensions_l2:
+            dimension_local = translations_l2[dimension]
+            values[dimension] = systemData['phase2Measurements'][dimension_local].replace(',','.')
+            values[dimension] = float(values[dimension])
+    if len(systemData['phase3Measurements'])>0:
+        for dimension in dimensions_l3:
+            dimension_local = translations_l3[dimension]
+            values[dimension] = systemData['phase3Measurements'][dimension_local].replace(',','.')
+            values[dimension] = float(values[dimension])
+    json_data = json.dumps(values)
+    client.publish('homeassistant/sensor/'+name,json_data)
 
 def publish_values_panel(name):
     dimensions = ('power', 'current', 'voltage', 'optimizer_voltage')
@@ -59,6 +113,7 @@ def publish_values_panel(name):
             values[dimension] = float(values[dimension])
     json_data = json.dumps(values)
     client.publish('homeassistant/sensor/'+name,json_data)
+
 
 ## Parse arguments into variables
 parser = argparse.ArgumentParser()
@@ -96,12 +151,37 @@ while 1:
         r = requests.get('https://monitoring.solaredge.com/solaredge-apigw/api/sites/'+field_id+'/layout/logical', cookies=cookies)
         datajson = json.loads(r.content)
         for data in datajson['logicalTree']['children']:
-            # reportedId = data['data']['id']
-            # producttype = data['data']['type']
-            # r = requests.get('https://monitoring.solaredge.com/solaredge-web/p/systemData?reporterId='+str(reportedId)+'&type='+producttype+'&activeTab=0&fieldId='+str(field_id)+'&isPublic=false', cookies=cookies)
-            # regexed = re.findall(r'SE\.systemData = .*',r.text)
-            # systemData = regexed[0][16:-1]
-            # systemData = json.loads(systemData)
+            # Omvormer
+            panelId = data['data']['id']
+            serialNumber = data['data']['serialNumber']
+            name = data['data']['name']
+            producttype = data['data']['type']                    
+            r = requests.get('https://monitoring.solaredge.com/solaredge-web/p/systemData?reporterId='+str(panelId)+'&type='+producttype+'&activeTab=0&fieldId='+str(field_id)+'&isPublic=false', cookies=cookies)
+            regexed = re.findall(r'SE\.systemData = .*',r.text)
+            systemData = regexed[0][16:-1]
+            systemData = json.loads(systemData)
+            if systemData != None:
+                name = str(systemData['description'])
+                config_base_topic = 'homeassistant/sensor/'+name
+                config_base_topic = config_base_topic.replace(' ','_').replace('.','-')
+                name = clean_name(name)
+                if (producttype=="INVERTER"):
+                    # L1
+                    if len(systemData['phase1Measurements'])>0:
+                        publish_config_inverter(name, 'l1_active_power', 'W', systemData)
+                        publish_config_inverter(name, 'l1_voltage', 'V', systemData)
+                        publish_config_inverter(name, 'l1_current', 'A', systemData)
+                    # L2
+                    if len(systemData['phase2Measurements'])>0:
+                        publish_config_inverter(name, 'l2_active_power', 'W', systemData)
+                        publish_config_inverter(name, 'l2_voltage', 'V', systemData)
+                        publish_config_inverter(name, 'l2_current', 'A', systemData)
+                    # L3
+                    if len(systemData['phase3Measurements'])>0:
+                        publish_config_inverter(name, 'l3_active_power', 'W', systemData)
+                        publish_config_inverter(name, 'l3_voltage', 'V', systemData)
+                        publish_config_inverter(name, 'l3_current', 'A', systemData)
+                    publish_values_inverter(name)
             
             # Panels
             for string in datajson['logicalTree']['children'][0]['children']:
