@@ -165,7 +165,7 @@ while 1:
                 config_base_topic = 'homeassistant/sensor/'+name
                 config_base_topic = config_base_topic.replace(' ','_').replace('.','-')
                 name = clean_name(name)
-                if (producttype=="INVERTER"):
+                if (producttype == "INVERTER" or producttype == "INVERTER_3PHASE"):
                     # L1
                     if len(systemData['phase1Measurements'])>0:
                         publish_config_inverter(name, 'l1_active_power', 'W', systemData)
