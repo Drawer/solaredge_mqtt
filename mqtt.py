@@ -103,14 +103,7 @@ def publish_values_panel(name):
     for dimension in dimensions:
         dimension_local = translations[dimension]
         values[dimension] = systemData['measurements'][dimension_local].replace(',','.')
-        if dimension == 'power':
-            values[dimension] = float(values[dimension])
-        if dimension == 'current':
-            values[dimension] = float(values[dimension])
-        if dimension == 'voltage':
-            values[dimension] = float(values[dimension])
-        if dimension == 'optimizer_voltage':
-            values[dimension] = float(values[dimension])
+        values[dimension] = float(values[dimension])
     json_data = json.dumps(values)
     client.publish('homeassistant/sensor/'+name,json_data)
 
